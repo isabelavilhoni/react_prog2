@@ -1,28 +1,48 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import Menu from './Menu';
+import Login from './Login';
 import CadastroCliente from './CadastroCliente';
 import CadastroFornecedor from './CadastroFornecedor';
 import CadastroFuncionario from './CadastroFuncionario';
 import CadastroVeiculo from './CadastroVeiculo';
 
-const App = () => {
+function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState("");
+
+  const handleLogin = (username) => {
+    setUser(username);
+    setIsLoggedIn(true);
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setUser("");
+  };
+
   return (
-    <div className="container mt-5">
-      <h1>Cadastro de Clientes</h1>
-      <CadastroCliente />
-
-      <hr />
-      <h1>Cadastro de Fornecedores</h1>
-      <CadastroFornecedor />
-
-      <hr />
-      <h1>Cadastro de Funcionários</h1>
-      <CadastroFuncionario />
-
-      <hr />
-      <h1>Cadastro de Veículos</h1>
-      <CadastroVeiculo />
-    </div>
+    <Router>
+      {isLoggedIn ? (
+        <>
+          <Menu user={user} onLogout={handleLogout} />
+          <Routes>
+            <Route path="/cadastro" element={<CadastroCliente />} />
+            <Route path="/cadastro-fornecedor" element={<CadastroFornecedor />} />
+            <Route path="/cadastro-funcionario" element={<CadastroFuncionario />} />
+            <Route path="/cadastro-veiculo" element={<CadastroVeiculo />} />
+            <Route path="*" element={<Navigate to="/cadastro" />} />
+          </Routes>
+        </>
+      ) : (
+        <Routes>
+          <Route path="/login" element={<Login onLogin={handleLogin} />} />
+          <Route path="*" element={<Navigate to="/login" />} />
+        </Routes>
+      )}
+    </Router>
   );
-};
+}
 
 export default App;
