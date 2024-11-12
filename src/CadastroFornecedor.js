@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Button, Form, Table } from 'react-bootstrap';
 
 const CadastroFornecedor = () => {
   const [formData, setFormData] = useState({
@@ -10,8 +11,12 @@ const CadastroFornecedor = () => {
     telefone: '',
     email: '',
   });
-
+  const [fornecedores, setFornecedores] = useState([]); 
   const [errors, setErrors] = useState({});
+  const [showForm, setShowForm] = useState(false); 
+  const [editIndex, setEditIndex] = useState(null); 
+
+  const toggleForm = () => setShowForm(!showForm);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -30,96 +35,153 @@ const CadastroFornecedor = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
-      console.log("Dados do fornecedor submetidos:", formData);
+      if (editIndex !== null) {
+        const updatedFornecedores = [...fornecedores];
+        updatedFornecedores[editIndex] = formData;
+        setFornecedores(updatedFornecedores);
+        setEditIndex(null);
+      } else {
+        setFornecedores([...fornecedores, formData]);
+      }
+      setFormData({
+        razaoSocial: '',
+        nomeFantasia: '',
+        cnpj: '',
+        inscricaoEstadual: '',
+        endereco: '',
+        telefone: '',
+        email: '',
+      });
+      setShowForm(false);
     }
+  };
+
+  const handleEdit = (index) => {
+    setEditIndex(index);
+    setFormData(fornecedores[index]);
+    setShowForm(true);
+  };
+
+  const handleDelete = (index) => {
+    setFornecedores(fornecedores.filter((_, i) => i !== index));
   };
 
   return (
     <div className="container mt-5">
       <h2 className="text-center">Cadastro de Fornecedores</h2>
-      <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <label className="form-label">Razão Social</label>
-          <input
-            type="text"
-            className={`form-control ${errors.razaoSocial ? 'is-invalid' : ''}`}
-            name="razaoSocial"
-            value={formData.razaoSocial}
-            onChange={handleChange}
-          />
-          {errors.razaoSocial && <div className="invalid-feedback">{errors.razaoSocial}</div>}
-        </div>
+      <Button onClick={toggleForm} variant="primary" className="mb-3">
+        {showForm ? 'Voltar para Lista' : 'Novo Fornecedor'}
+      </Button>
 
-        <div className="mb-3">
-          <label className="form-label">Nome Fantasia</label>
-          <input
-            type="text"
-            className="form-control"
-            name="nomeFantasia"
-            value={formData.nomeFantasia}
-            onChange={handleChange}
-          />
-        </div>
+      {showForm ? (
+        <Form onSubmit={handleSubmit}>
+          <Form.Group className="mb-3">
+            <Form.Label>Razão Social</Form.Label>
+            <Form.Control
+              type="text"
+              className={errors.razaoSocial ? 'is-invalid' : ''}
+              name="razaoSocial"
+              value={formData.razaoSocial}
+              onChange={handleChange}
+            />
+            {errors.razaoSocial && <div className="invalid-feedback">{errors.razaoSocial}</div>}
+          </Form.Group>
 
-        <div className="mb-3">
-          <label className="form-label">CNPJ</label>
-          <input
-            type="text"
-            className={`form-control ${errors.cnpj ? 'is-invalid' : ''}`}
-            name="cnpj"
-            value={formData.cnpj}
-            onChange={handleChange}
-          />
-          {errors.cnpj && <div className="invalid-feedback">{errors.cnpj}</div>}
-        </div>
+          <Form.Group className="mb-3">
+            <Form.Label>Nome Fantasia</Form.Label>
+            <Form.Control
+              type="text"
+              name="nomeFantasia"
+              value={formData.nomeFantasia}
+              onChange={handleChange}
+            />
+          </Form.Group>
 
-        <div className="mb-3">
-          <label className="form-label">Inscrição Estadual</label>
-          <input
-            type="text"
-            className="form-control"
-            name="inscricaoEstadual"
-            value={formData.inscricaoEstadual}
-            onChange={handleChange}
-          />
-        </div>
+          <Form.Group className="mb-3">
+            <Form.Label>CNPJ</Form.Label>
+            <Form.Control
+              type="text"
+              className={errors.cnpj ? 'is-invalid' : ''}
+              name="cnpj"
+              value={formData.cnpj}
+              onChange={handleChange}
+            />
+            {errors.cnpj && <div className="invalid-feedback">{errors.cnpj}</div>}
+          </Form.Group>
 
-        <div className="mb-3">
-          <label className="form-label">Endereço Completo</label>
-          <input
-            type="text"
-            className="form-control"
-            name="endereco"
-            value={formData.endereco}
-            onChange={handleChange}
-          />
-        </div>
+          <Form.Group className="mb-3">
+            <Form.Label>Inscrição Estadual</Form.Label>
+            <Form.Control
+              type="text"
+              name="inscricaoEstadual"
+              value={formData.inscricaoEstadual}
+              onChange={handleChange}
+            />
+          </Form.Group>
 
-        <div className="mb-3">
-          <label className="form-label">Telefone</label>
-          <input
-            type="text"
-            className="form-control"
-            name="telefone"
-            value={formData.telefone}
-            onChange={handleChange}
-          />
-        </div>
+          <Form.Group className="mb-3">
+            <Form.Label>Endereço Completo</Form.Label>
+            <Form.Control
+              type="text"
+              name="endereco"
+              value={formData.endereco}
+              onChange={handleChange}
+            />
+          </Form.Group>
 
-        <div className="mb-3">
-          <label className="form-label">E-mail</label>
-          <input
-            type="email"
-            className={`form-control ${errors.email ? 'is-invalid' : ''}`}
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-          />
-          {errors.email && <div className="invalid-feedback">{errors.email}</div>}
-        </div>
+          <Form.Group className="mb-3">
+            <Form.Label>Telefone</Form.Label>
+            <Form.Control
+              type="text"
+              name="telefone"
+              value={formData.telefone}
+              onChange={handleChange}
+            />
+          </Form.Group>
 
-        <button type="submit" className="btn btn-primary">Cadastrar</button>
-      </form>
+          <Form.Group className="mb-3">
+            <Form.Label>E-mail</Form.Label>
+            <Form.Control
+              type="email"
+              className={errors.email ? 'is-invalid' : ''}
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+            />
+            {errors.email && <div className="invalid-feedback">{errors.email}</div>}
+          </Form.Group>
+
+          <Button type="submit" variant="success">
+            {editIndex !== null ? 'Salvar Alterações' : 'Cadastrar'}
+          </Button>
+        </Form>
+      ) : (
+        <Table striped bordered hover>
+          <thead>
+            <tr>
+              <th>Razão Social</th>
+              <th>CNPJ</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {fornecedores.map((fornecedor, index) => (
+              <tr key={index}>
+                <td>{fornecedor.razaoSocial}</td>
+                <td>{fornecedor.cnpj}</td>
+                <td>
+                  <Button variant="warning" onClick={() => handleEdit(index)} className="me-2">
+                    Editar
+                  </Button>
+                  <Button variant="danger" onClick={() => handleDelete(index)}>
+                    Excluir
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      )}
     </div>
   );
 };
