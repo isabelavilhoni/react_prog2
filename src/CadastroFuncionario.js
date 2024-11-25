@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Form, Table } from 'react-bootstrap';
+import axios from 'axios';
 
 const CadastroFuncionario = () => {
   const [formData, setFormData] = useState({
@@ -15,8 +16,23 @@ const CadastroFuncionario = () => {
   });
   const [funcionarios, setFuncionarios] = useState([]);
   const [errors, setErrors] = useState({});
-  const [showForm, setShowForm] = useState(false); 
-  const [editIndex, setEditIndex] = useState(null); 
+  const [showForm, setShowForm] = useState(false);
+  const [editIndex, setEditIndex] = useState(null);
+
+  const API_URL = 'http://localhost:5000/funcionarios';
+
+  useEffect(() => {
+    const fetchFuncionarios = async () => {
+      try {
+        const response = await axios.get(API_URL);
+        setFuncionarios(response.data);
+      } catch (error) {
+        console.error('Erro ao buscar funcionários:', error);
+      }
+    };
+
+    fetchFuncionarios();
+  }, []);
 
   const toggleForm = () => setShowForm(!showForm);
 
@@ -27,36 +43,42 @@ const CadastroFuncionario = () => {
 
   const validateForm = () => {
     let tempErrors = {};
-    if (!formData.nome) tempErrors.nome = "Nome é obrigatório";
-    if (!formData.cpf) tempErrors.cpf = "CPF é obrigatório";
-    if (!formData.email) tempErrors.email = "Email é obrigatório";
+    if (!formData.nome) tempErrors.nome = 'Nome é obrigatório';
+    if (!formData.cpf) tempErrors.cpf = 'CPF é obrigatório';
+    if (!formData.email) tempErrors.email = 'Email é obrigatório';
     setErrors(tempErrors);
     return Object.keys(tempErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateForm()) {
-      if (editIndex !== null) {
-        const updatedFuncionarios = [...funcionarios];
-        updatedFuncionarios[editIndex] = formData;
-        setFuncionarios(updatedFuncionarios);
+      try {
+        if (editIndex !== null) {
+          await axios.put(`${API_URL}/${funcionarios[editIndex].id}`, formData);
+          const updatedFuncionarios = [...funcionarios];
+          updatedFuncionarios[editIndex] = formData;
+          setFuncionarios(updatedFuncionarios);
+        } else {
+          const response = await axios.post(API_URL, formData);
+          setFuncionarios([...funcionarios, response.data]);
+        }
+        setFormData({
+          nome: '',
+          dataNascimento: '',
+          sexo: '',
+          estadoCivil: '',
+          cpf: '',
+          rg: '',
+          endereco: '',
+          telefone: '',
+          email: '',
+        });
         setEditIndex(null);
-      } else {
-        setFuncionarios([...funcionarios, formData]);
+        setShowForm(false);
+      } catch (error) {
+        console.error('Erro ao salvar funcionário:', error);
       }
-      setFormData({
-        nome: '',
-        dataNascimento: '',
-        sexo: '',
-        estadoCivil: '',
-        cpf: '',
-        rg: '',
-        endereco: '',
-        telefone: '',
-        email: '',
-      });
-      setShowForm(false);
     }
   };
 
@@ -66,8 +88,13 @@ const CadastroFuncionario = () => {
     setShowForm(true);
   };
 
-  const handleDelete = (index) => {
-    setFuncionarios(funcionarios.filter((_, i) => i !== index));
+  const handleDelete = async (index) => {
+    try {
+      await axios.delete(`${API_URL}/${funcionarios[index].id}`);
+      setFuncionarios(funcionarios.filter((_, i) => i !== index));
+    } catch (error) {
+      console.error('Erro ao excluir funcionário:', error);
+    }
   };
 
   return (
@@ -79,6 +106,7 @@ const CadastroFuncionario = () => {
 
       {showForm ? (
         <Form onSubmit={handleSubmit}>
+          {/* Campos do formulário */}
           <Form.Group className="mb-3">
             <Form.Label>Nome Completo</Form.Label>
             <Form.Control
